@@ -90,3 +90,17 @@ class UserTest(BaseModel):
     class Meta:
         verbose_name = "User Test"
         verbose_name_plural = "User Tests"
+
+
+class UserAnswer(BaseModel):
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE, verbose_name="User", 
+                             related_name="user_questions")
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Question",
+                                 related_name="user_questions")
+    is_correct = models.BooleanField(verbose_name="Correct")
+    user_answer = models.CharField(max_length=255, verbose_name="User Answer")
+    
+    
+    class Meta:
+        verbose_name = "User Answer"
+        verbose_name_plural = "User Answers"

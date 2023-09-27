@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.learning.models import Lesson, Test, Question, UserLesson
+from apps.learning.models import Lesson, Test, Question, UserLesson, UserAnswer, UserTest
 
 
 @admin.register(Lesson)
@@ -26,3 +26,14 @@ class TestAdmin(admin.ModelAdmin):
 @admin.register(UserLesson)
 class UserLessonAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(UserAnswer)
+class UserAnswerAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(UserTest)
+class UserTestAdmin(admin.ModelAdmin):
+    pass
+
