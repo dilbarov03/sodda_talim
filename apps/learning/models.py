@@ -33,7 +33,7 @@ class Test(BaseModel):
         ordering = ["order"]
         
     def __str__(self):
-        return self.test_type
+        return f"{self.lesson.title} - {self.test_type}"
     
     def get_status(self, user):
         try:

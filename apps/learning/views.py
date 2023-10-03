@@ -1,4 +1,4 @@
-from django.db.models import Case, When, Value, BooleanField
+from django.db.models import Case, When, Value, BooleanField, F, Q
 
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -13,11 +13,23 @@ class LessonListView(ListAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        return Lesson.objects.annotate(is_active=Case(
-            When(user_lessons__user=self.request.user, then=Value(True)),
-            default=Value(False),
-            output_field=BooleanField()
-        ))
+        user = self.request.user
+
+        # Filter lessons associated with the current user or those with no associated UserLesson
+        queryset = Lesson.objects.filter(
+            Q(user_lessons__user=user) | Q(user_lessons__isnull=True)
+        ).distinct()
+
+        # Annotate the queryset with the is_active field
+        queryset = queryset.annotate(
+            is_active=Case(
+                When(user_lessons__user=user, user_lessons__lesson_id=F('id'), then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField()
+            )
+        )
+
+        return queryset
         
 
 class TestDetailView(RetrieveAPIView):
