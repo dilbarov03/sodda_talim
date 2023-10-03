@@ -73,7 +73,4 @@ class UserAnswerView(CreateAPIView):
                 user_test.status = UserTest.TestStatus.ACTIVE
 
             user_test.save()
-            self.get_serializer_context()["correct_count"] = correct_answers
-            self.get_serializer_context()["wrong_count"] = user_test.wrong_count
-            self.get_serializer_context()["status"] = user_test.status
             
