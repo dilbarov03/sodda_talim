@@ -1,11 +1,13 @@
 from django.db.models import Case, When, Value, BooleanField, F, Q
-
-from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, GenericAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Lesson, Test, UserTest, UserAnswer, EntranceQuestion, UserLesson
 
-from .models import Lesson, Test, UserTest, UserAnswer
-
-from .serializers import LessonListSerializer, TestDetailSerializer, UserAnswerInputSerializer, UserTestSerializer
+from .serializers import LessonListSerializer, TestDetailSerializer, UserAnswerInputSerializer, EntranceQuestionSerializer
 
 
 class LessonListView(ListAPIView):
@@ -47,9 +49,9 @@ class UserAnswerView(CreateAPIView):
         user_answers = serializer.create(validated_data=serializer.validated_data)
         serializer.is_valid(raise_exception=True)
 
-        
         # Update the user's test status based on correctness
-        self.update_user_test_status(user, user_answers)
+        if user_answers:
+            self.update_user_test_status(user, user_answers)
 
     def update_user_test_status(self, user, user_answers):
         test_ids = set(answer.question.test.id for answer in user_answers)
@@ -73,4 +75,36 @@ class UserAnswerView(CreateAPIView):
                 user_test.status = UserTest.TestStatus.ACTIVE
 
             user_test.save()
+            
+            
+class EntranceQuestionListView(ListAPIView):
+    queryset = EntranceQuestion.objects.all()
+    serializer_class = EntranceQuestionSerializer
+    pagination_class = None
+
+
+class AddLessonsView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    
+    state_param = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'lesson_count': openapi.Schema(type=openapi.TYPE_INTEGER, description='Lesson count')
+        }
+    )
+    
+    @swagger_auto_schema(request_body=state_param)
+    def post(self, request):
+        user = request.user
+        lesson_count = request.data.get("lesson_count")
+        if not lesson_count:
+            return Response({"error": "Lesson count is required"}, status=400)
+        lessons = Lesson.objects.filter(order__lte=lesson_count)
+        for lesson in lessons:
+            UserLesson.objects.get_or_create(user=user, lesson=lesson)
+            tests = lesson.tests.all()
+            for test in tests:
+                UserTest.objects.get_or_create(user=user, test=test, status="active")
+        return Response({"message": "Lessons added successfully"}, status=201)
+                
             

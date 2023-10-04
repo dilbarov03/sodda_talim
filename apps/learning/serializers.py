@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Lesson, Test, Question, UserAnswer, UserTest
+from .models import Lesson, Test, Question, UserAnswer, UserTest, EntranceQuestion
 
 
 class TestListSerializer(serializers.ModelSerializer):
@@ -89,15 +89,20 @@ class UserAnswerInputSerializer(serializers.Serializer):
             question = Question.objects.filter(pk=question_id).first()
             user_answer = answer_data.get('user_answer')
             
-            UserAnswer.objects.filter(user=user, question=question).delete()
+            test = question.test
+            user_test = UserTest.objects.filter(user=user, test=test).first()
+            if user_test and user_test.status == "finished":
+                raise serializers.ValidationError("You have already finished this test")   
+            else:
+                UserAnswer.objects.filter(user=user, question=question).delete()
 
-            user_answer_instance = UserAnswer.objects.create(
-                user=user,
-                question=question,
-                user_answer=user_answer,
-                is_correct=user_answer == question.correct_option
-            )
-            user_answer_instances.append(user_answer_instance)
+                user_answer_instance = UserAnswer.objects.create(
+                    user=user,
+                    question=question,
+                    user_answer=user_answer,
+                    is_correct=user_answer == question.correct_option
+                )
+                user_answer_instances.append(user_answer_instance)
 
         return user_answer_instances
     
@@ -110,3 +115,9 @@ class UserTestSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserTest
         fields = ("id", "user", "test", "status")
+
+
+class EntranceQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EntranceQuestion
+        fields = ("id", "question", "correct_option", "wrong_option")

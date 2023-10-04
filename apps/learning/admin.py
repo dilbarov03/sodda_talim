@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.learning.models import Lesson, Test, Question, UserLesson, UserAnswer, UserTest
+from apps.learning.models import Lesson, Test, Question, UserLesson, UserAnswer, UserTest, EntranceQuestion
 
 
 @admin.register(Lesson)
@@ -40,3 +40,14 @@ class UserTestAdmin(admin.ModelAdmin):
     list_filter = ["user", "test", "status"]
     autocomplete_fields = ["user", "test"]
 
+
+@admin.register(EntranceQuestion)
+class EntranceQuestionAdmin(admin.ModelAdmin):
+    list_display = ["question", "correct_option", "wrong_option", "order"]
+    search_fields = ["question", "correct_option", "wrong_option"]
+
+    def has_add_permission(self, request):
+        if self.model.objects.count() >= 90:
+            return False
+        return super().has_add_permission(request)
+    

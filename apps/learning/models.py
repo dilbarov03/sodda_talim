@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 
 from apps.common.models import BaseModel
 
@@ -113,7 +114,7 @@ class UserTest(BaseModel):
                     
         elif self.status == "finished" and test != lesson.tests.last():
             # if it is, then add the next test to the UserTest model
-            next_test = Test.objects.filter(id__gt=test.id).first()
+            next_test = Test.objects.filter(lesson=lesson).filter(Q(order__gt=test.order) | Q(id__gt=test.id)).first()
             if next_test:
                 if not UserTest.objects.filter(user=self.user, test=next_test).exists():
                     UserTest.objects.get_or_create(user=self.user, test=next_test, status="active")
@@ -133,3 +134,20 @@ class UserAnswer(BaseModel):
     class Meta:
         verbose_name = "User Answer"
         verbose_name_plural = "User Answers"
+
+
+class EntranceQuestion(BaseModel):
+    question = models.TextField(verbose_name="Question")
+    correct_option = models.CharField(max_length=255, verbose_name="Correct Option")
+    wrong_option = models.CharField(max_length=255, verbose_name="Wrong Option", null=True, blank=True)
+    order = models.IntegerField(verbose_name="Order", default=1)
+    
+    class Meta:
+        verbose_name = "Entrance Question"
+        verbose_name_plural = "Entrance Questions"
+        ordering = ["order"]
+
+    def __str__(self):
+        return self.question[:50] + "..."
+    
+    
