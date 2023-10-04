@@ -62,10 +62,16 @@ class Question(BaseModel):
 
 
 class UserLesson(BaseModel):
+    class LessonStatus(models.TextChoices):
+        OPEN = "open", "Open"
+        CLOSED = "closed", "Closed"
+        
     user = models.ForeignKey("users.User", on_delete=models.CASCADE, verbose_name="User", 
                              related_name="user_lessons")
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, verbose_name="Lesson",
                                related_name="user_lessons")
+    status = models.CharField(max_length=255, choices=LessonStatus.choices, verbose_name="Status",
+                                default=LessonStatus.CLOSED)
     
     class Meta:
         verbose_name = "User Lesson"
@@ -80,7 +86,8 @@ class UserLesson(BaseModel):
 class UserTest(BaseModel):
     
     class TestStatus(models.TextChoices):
-        LOCKED = "locked", "Locked"
+        LOCKED = "locked", "Locked" # because of the lesson
+        CLOSED = "closed", "Closed" # because of the subscription
         ACTIVE = "active", "Active"
         FINISHED = "finished", "Finished"
     
@@ -101,16 +108,20 @@ class UserTest(BaseModel):
         test = self.test
         lesson = test.lesson
         if self.status == "finished" and test == lesson.tests.last():        
-            # check if user has active subscription
-            if self.user.has_active_subscription():
-                # if it is, then add the next lesson to the UserLesson model
-                next_lesson = Lesson.objects.filter(order=lesson.order + 1).first()
-                if next_lesson:
-                    UserLesson.objects.get_or_create(user=self.user, lesson=next_lesson)
-                    # make first test of this lesson active to the user
-                    test = next_lesson.tests.first()
-                    if test and not UserTest.objects.filter(user=self.user, test=test).exists():
-                        UserTest.objects.create(user=self.user, test=test, status="active") 
+            next_lesson = Lesson.objects.filter(order=lesson.order + 1).first()
+            if next_lesson:
+                if self.user.has_active_subscription():
+                    lesson_status = "open"
+                    test_status = "active"
+                else:
+                    lesson_status = "closed"
+                    test_status = "closed"    
+                
+                UserLesson.objects.get_or_create(user=self.user, lesson=next_lesson, status=lesson_status)
+                
+                test = next_lesson.tests.first()
+                if test and not UserTest.objects.filter(user=self.user, test=test).exists():
+                    UserTest.objects.create(user=self.user, test=test, status=test_status) 
                     
         elif self.status == "finished" and test != lesson.tests.last():
             # if it is, then add the next test to the UserTest model

@@ -21,5 +21,7 @@ class User(AbstractUser):
     
 
     def has_active_subscription(self):
-        return self.subscribe_to > timezone.now().date()
+        if self.subscribe_from and self.subscribe_to:
+            return self.subscribe_from <= timezone.now().date() <= self.subscribe_to
+        return False
     

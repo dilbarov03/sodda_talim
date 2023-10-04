@@ -15,4 +15,26 @@ def add_initial_lessons(sender, instance, created, **kwargs):
             tests = lesson.tests.all()
             for test in tests:
                 UserTest.objects.create(user=instance, test=test, status="active")
+    else:
+        if instance.has_active_subscription():
+            closed_lessons = UserLesson.objects.filter(user=instance, status="closed")
+            closed_lessons_list = list(closed_lessons)
+            closed_lessons.update(status="open")
+            
+            if len(closed_lessons_list) == 0:
+                return
+            
+            elif len(closed_lessons_list) == 1:
+                last_lesson = closed_lessons_list[0]
+                # make the first test of the last lesson available to the user
+                UserTest.objects.filter(user=instance, test__lesson=last_lesson.lesson, status="closed").update(status="active")
+            else:
+                for lesson in closed_lessons_list[:-1]:
+                    UserTest.objects.filter(user=instance, test__lesson=lesson.lesson, status="closed").update(status="active")
+                
+                last_lesson = closed_lessons_list[-1]
+                # make the first test of the last lesson available to the user
+                user_test = UserTest.objects.filter(user=instance, test__lesson=last_lesson.lesson, status="closed").first()
+                user_test.status = "active"
+                user_test.save()
             

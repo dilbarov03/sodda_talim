@@ -13,25 +13,25 @@ from .serializers import LessonListSerializer, TestDetailSerializer, UserAnswerI
 class LessonListView(ListAPIView):
     serializer_class = LessonListSerializer
     permission_classes = (IsAuthenticated,)
+    queryset = Lesson.objects.all()
 
-    def get_queryset(self):
-        user = self.request.user
+    # def get_queryset(self):
+    #     user = self.request.user
 
-        # Filter lessons associated with the current user or those with no associated UserLesson
-        queryset = Lesson.objects.filter(
-            Q(user_lessons__user=user) | Q(user_lessons__isnull=True)
-        ).distinct()
+    #     # get all users without duplicates
+    #     queryset = Lesson.objects.all()
+        
 
-        # Annotate the queryset with the is_active field
-        queryset = queryset.annotate(
-            is_active=Case(
-                When(user_lessons__user=user, user_lessons__lesson_id=F('id'), then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()
-            )
-        )
+    #     # Annotate the queryset with the is_active field
+    #     queryset = queryset.annotate(
+    #         is_active=Case(
+    #             When(user_lessons__user=user, user_lessons__lesson_id=F('id'), user_lessons__status="open", then=Value(True)),
+    #             default=Value(False),
+    #             output_field=BooleanField()
+    #         )
+    #     )
 
-        return queryset
+    #     return queryset
         
 
 class TestDetailView(RetrieveAPIView):
@@ -99,12 +99,38 @@ class AddLessonsView(GenericAPIView):
         lesson_count = request.data.get("lesson_count")
         if not lesson_count:
             return Response({"error": "Lesson count is required"}, status=400)
-        lessons = Lesson.objects.filter(order__lte=lesson_count)
-        for lesson in lessons:
-            UserLesson.objects.get_or_create(user=user, lesson=lesson)
-            tests = lesson.tests.all()
+        lessons = Lesson.objects.filter(order__lte=lesson_count, order__gt=3)
+        
+        lessons_list = list(lessons)
+        
+        if user.has_active_subscription():
+            lesson_status = "open"
+            test_status = "active"
+        else:
+            lesson_status = "closed"
+            test_status = "closed"
+        
+        #add all lessons and their tests except the last one
+        if len(lessons_list) == 0:
+            return Response({"error": "No lessons found"}, status=400)
+        elif len(lessons_list) == 1:
+            UserLesson.objects.get_or_create(user=user, lesson=lessons_list[0], status=lesson_status)
+            tests = lessons_list[0].tests.all()
             for test in tests:
-                UserTest.objects.get_or_create(user=user, test=test, status="active")
+                UserTest.objects.get_or_create(user=user, test=test, status=test_status)
+        else:
+            for lesson in lessons_list[:-1]:
+                UserLesson.objects.get_or_create(user=user, lesson=lesson, status=lesson_status)
+                tests = lesson.tests.all()
+                for test in tests:
+                    UserTest.objects.get_or_create(user=user, test=test, status=test_status)
+        
+            # add the last lesson and first test of that lesson
+            last_lesson = lessons_list[-1]
+            UserLesson.objects.get_or_create(user=user, lesson=last_lesson, status=lesson_status)
+            test = last_lesson.tests.first()
+            UserTest.objects.get_or_create(user=user, test=test, status=test_status)
+        
         return Response({"message": "Lessons added successfully"}, status=201)
                 
             

@@ -25,8 +25,9 @@ class TestAdmin(admin.ModelAdmin):
 
 @admin.register(UserLesson)
 class UserLessonAdmin(admin.ModelAdmin):
-    list_display = ["user", "lesson"]
-    
+    list_display = ["user", "lesson", "status"]
+    list_filter = ["user", "lesson", "status"]
+    autocomplete_fields = ["user", "lesson"]
 
 
 @admin.register(UserAnswer)

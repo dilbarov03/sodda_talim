@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Lesson, Test, Question, UserAnswer, UserTest, EntranceQuestion
+from .models import Lesson, Test, Question, UserAnswer, UserTest, EntranceQuestion, UserLesson
 
 
 class TestListSerializer(serializers.ModelSerializer):
@@ -14,11 +14,18 @@ class TestListSerializer(serializers.ModelSerializer):
 
 
 class LessonListSerializer(serializers.ModelSerializer):
-    is_active = serializers.BooleanField()
+    is_active = serializers.SerializerMethodField()
     tests = TestListSerializer(many=True)
+    
     class Meta:
         model = Lesson
         fields = ("id", "title", "body", "is_active", "tests")
+        
+    def get_is_active(self, obj):
+        user_lesson = UserLesson.objects.filter(user=self.context["request"].user, lesson=obj).first()
+        if user_lesson:
+            return user_lesson.status == "open"
+        return False
 
 
 class QuestionListSerializer(serializers.ModelSerializer):
