@@ -24,4 +24,7 @@ class User(AbstractUser):
         if self.subscribe_from and self.subscribe_to:
             return self.subscribe_from <= timezone.now().date() <= self.subscribe_to
         return False
-    
+   
+
+
+ 
