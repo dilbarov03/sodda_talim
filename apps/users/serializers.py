@@ -37,3 +37,29 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()    
         return user
+    
+
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'first_name', 'last_name', 'image')
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    # Serializer for password change endpoint.
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Old password is not correct")
+        return value
+    
+    def validate_new_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 6 characters")
+        return value
+
+    
+    
