@@ -48,7 +48,8 @@ DJANGO_APPS = [
 CUSTOM_APPS = [
     "apps.common",
     "apps.users",
-    "apps.learning"
+    "apps.learning",
+    "apps.confirmation_service",
 ]
 
 THIRD_PARTY_APPS = [
@@ -211,3 +212,18 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_LIFETIME": timedelta(days=1),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=10),
 }
+
+
+SMS_URL = env.str("SMS_URL")
+SMS_TOKEN = env.str("SMS_TOKEN")
+
+
+REGISTRATION_STATE_EXPIRE_SECONDS = 60 * 60 * 2  # all registration period limit
+CONFIRMATION_CODE_EXPIRE_SECONDS = 2 * 60  # sms code lifetime
+CONFIRMATION_CODE_MAX_ATTEMPTS = 3  # allowed max number code confirmations
+REGISTRATION_ATTEMPTS_LIMIT = 3  # resent attempts limit
+
+RESTORE_STATE_EXPIRE_SECONDS = 60 * 60 * 2  # all restore password period limit
+RESTORE_CODE_MAX_ATTEMPTS = 3  # allowed max number restore code
+
+SMS_CONFIRMATION_CODE_EXPIRE_SECONDS = 60 * 2  # sms code lifetime
