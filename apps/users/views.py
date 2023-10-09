@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 
 from .utils import check_number
 from .models import User
-from .serializers import RegisterUserSerializer, UpdateProfileSerializer, ChangePasswordSerializer, UpdatePhoneSerializer
+from .serializers import RegisterUserSerializer, UpdateProfileSerializer, ChangePasswordSerializer, UpdatePhoneSerializer, RecoverPasswordSerializer
 
 
 class UserRegisterView(generics.CreateAPIView):
@@ -73,3 +73,13 @@ def check_phone_number(request, phone_number):
     if User.objects.filter(phone="+" + phone_number).exists():
         return Response({"message": "User with this phone number already exists", "exists": True}, status=status.HTTP_400_BAD_REQUEST)
     return Response(status=status.HTTP_200_OK, data={"message": "Success","exists": False})
+
+
+class RecoverPasswordView(generics.CreateAPIView):
+    serializer_class = RecoverPasswordSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            success = True
+            return Response({"success": success})
