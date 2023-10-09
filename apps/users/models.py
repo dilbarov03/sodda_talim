@@ -7,7 +7,7 @@ class User(AbstractUser):
     username = None
     first_name = models.CharField(max_length=45)
     last_name = models.CharField(max_length=45)
-    phone = models.CharField(max_length=10, unique=True)
+    phone = models.CharField(max_length=15, unique=True)
     image = models.ImageField(upload_to='avatars/', null=True, blank=True)
     subscribe_from = models.DateField(null=True, blank=True)
     subscribe_to = models.DateField(null=True, blank=True)

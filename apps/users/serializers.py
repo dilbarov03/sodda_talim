@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
+from apps.confirmation_service.models import SMSConfirmation
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     """Serializer for creating user objects."""
@@ -62,4 +63,22 @@ class ChangePasswordSerializer(serializers.Serializer):
         return value
 
     
-    
+
+class UpdatePhoneSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(required=True)
+    signature = serializers.CharField(required=True)
+
+    def validate_signature(self, value):
+        confirm_signature = SMSConfirmation.objects.filter(signature=value).first()
+        if confirm_signature is None:
+            raise serializers.ValidationError("Wrong signature")
+        if confirm_signature.confirmed is False:
+            raise serializers.ValidationError(f"Signature is not confirmed!")
+        confirm_signature.delete()
+
+    def update_user_phone(self):
+        phone_number = self.validated_data["phone_number"]
+        user = self.context['request'].user
+        user.phone = phone_number
+        user.save(update_fields=['phone'])
+        
