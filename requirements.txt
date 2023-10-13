@@ -12,3 +12,4 @@ requests
 django-phonenumber-field
 phonenumbers
 gunicorn
+whitenoise
