@@ -41,6 +41,12 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         return user
     
 
+class GetProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'first_name', 'last_name', 'image', 'phone')
+
+
 class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
