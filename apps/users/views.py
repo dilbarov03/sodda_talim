@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 
 from .utils import check_number
 from .models import User
-from .serializers import RegisterUserSerializer, UpdateProfileSerializer, ChangePasswordSerializer, UpdatePhoneSerializer, RecoverPasswordSerializer
+from .serializers import RegisterUserSerializer, UpdateProfileSerializer, ChangePasswordSerializer, UpdatePhoneSerializer, RecoverPasswordSerializer, GetProfileSerializer
 
 
 class UserRegisterView(generics.CreateAPIView):
@@ -22,6 +22,14 @@ def create(self, request, *args, **kwargs):
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileGetView(generics.RetrieveAPIView):
+    serializer_class = GetProfileSerializer
+    permission_classes = (IsAuthenticated, )
+    
+    def get_object(self):
+        return self.request.user
 
 
 class UpdateProfileView(generics.UpdateAPIView):

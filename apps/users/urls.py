@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import UserRegisterView, UpdateProfileView, ChangePasswordView, UpdatePhoneView, RecoverPasswordView
+from .views import UserRegisterView, UpdateProfileView, ChangePasswordView, UpdatePhoneView, RecoverPasswordView, ProfileGetView
 from .views import check_phone_number
 
 urlpatterns = [
+    path("profile/", ProfileGetView.as_view(), name="get-ptofile"),
     path("register/", UserRegisterView.as_view(), name="user-register"),
     path("update/", UpdateProfileView.as_view(), name="user-update"),
     path("change-password/", ChangePasswordView.as_view(), name="change-password"),
