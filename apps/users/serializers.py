@@ -33,7 +33,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         user = User(
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
-            image=validated_data['image'],
+            image=validated_data.get('image'),
             phone=validated_data['phone']
         )
         user.set_password(validated_data['password'])
