@@ -9,7 +9,7 @@ def add_initial_lessons(sender, instance, created, **kwargs):
         # Add the first three lessons to the UserLesson model
         lessons_to_add = Lesson.objects.all()[:3]
         for lesson in lessons_to_add:
-            UserLesson.objects.create(user=instance, lesson=lesson)
+            UserLesson.objects.create(user=instance, lesson=lesson, status="open")
             
             # make all tests in these three lessons available to the user
             tests = lesson.tests.all()

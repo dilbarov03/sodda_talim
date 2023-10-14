@@ -78,7 +78,7 @@ def check_phone_number(request, phone_number):
     if not is_valid:
         return Response({"message": "Invalid phone format", "exists": False},
                         status=status.HTTP_400_BAD_REQUEST)
-    if User.objects.filter(phone="+" + phone_number).exists():
+    if User.objects.filter(phone=phone_number).exists():
         return Response({"message": "User with this phone number already exists", "exists": True}, status=status.HTTP_400_BAD_REQUEST)
     return Response(status=status.HTTP_200_OK, data={"message": "Success","exists": False})
 

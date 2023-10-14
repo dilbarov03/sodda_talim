@@ -77,11 +77,6 @@ class UserLesson(BaseModel):
         verbose_name = "User Lesson"
         verbose_name_plural = "User Lessons"
         
-    
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs) 
-        
-
 
 class UserTest(BaseModel):
     
@@ -103,6 +98,7 @@ class UserTest(BaseModel):
     class Meta:
         verbose_name = "User Test"
         verbose_name_plural = "User Tests"
+        ordering = ("id", )
         
     def save(self, *args, **kwargs):
         test = self.test
@@ -117,7 +113,16 @@ class UserTest(BaseModel):
                     lesson_status = "closed"
                     test_status = "closed"    
                 
-                UserLesson.objects.get_or_create(user=self.user, lesson=next_lesson, status=lesson_status)
+                user_lesson, created = UserLesson.objects.get_or_create(user=self.user, lesson=next_lesson)
+
+                # If the object is created, set its status
+                if created:
+                    user_lesson.status = lesson_status
+                    user_lesson.save()
+                else:
+                    # If the object already exists, update its status
+                    user_lesson.status = lesson_status
+                    user_lesson.save()
                 
                 test = next_lesson.tests.first()
                 if test and not UserTest.objects.filter(user=self.user, test=test).exists():
