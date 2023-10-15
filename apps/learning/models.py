@@ -155,7 +155,8 @@ class UserAnswer(BaseModel):
 class EntranceQuestion(BaseModel):
     question = models.TextField(verbose_name="Question")
     correct_option = models.CharField(max_length=255, verbose_name="Correct Option")
-    wrong_option = models.CharField(max_length=255, verbose_name="Wrong Option", null=True, blank=True)
+    wrong_option1 = models.CharField(max_length=255, verbose_name="Wrong Option 1", null=True, blank=True)
+    wrong_option2 = models.CharField(max_length=255, verbose_name="Wrong Option 2", null=True, blank=True)
     order = models.IntegerField(verbose_name="Order", default=1)
     
     class Meta:

@@ -127,4 +127,4 @@ class UserTestSerializer(serializers.ModelSerializer):
 class EntranceQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = EntranceQuestion
-        fields = ("id", "question", "correct_option", "wrong_option")
+        fields = ("id", "question", "correct_option", "wrong_option1", "wrong_option2")
