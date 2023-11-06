@@ -39,6 +39,9 @@ class UpdateProfileView(generics.UpdateAPIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = (IsAuthenticated,)
     
+    def get_object(self):
+        return self.request.user
+    
 
 class ChangePasswordView(generics.GenericAPIView):
     """Handles changing a user's password."""
