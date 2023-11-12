@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import Lesson, Test, Question, UserAnswer, UserTest, EntranceQuestion, UserLesson
-
+from .utils import process_string
 
 class TestListSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
@@ -102,12 +102,15 @@ class UserAnswerInputSerializer(serializers.Serializer):
                 raise serializers.ValidationError("You have already finished this test")   
             else:
                 UserAnswer.objects.filter(user=user, question=question).delete()
+                
+                user_answer_formatted = process_string(user_answer)
+                question_answer_formatted = process_string(question.correct_option)
 
                 user_answer_instance = UserAnswer.objects.create(
                     user=user,
                     question=question,
                     user_answer=user_answer,
-                    is_correct=user_answer == question.correct_option
+                    is_correct=user_answer_formatted == question_answer_formatted
                 )
                 user_answer_instances.append(user_answer_instance)
 
