@@ -132,8 +132,12 @@ class UserTest(BaseModel):
             # if it is, then add the next test to the UserTest model
             next_test = Test.objects.filter(lesson=lesson).filter(Q(order__gt=test.order) | Q(id__gt=test.id)).first()
             if next_test:
-                if not UserTest.objects.filter(user=self.user, test=next_test).exists():
-                    UserTest.objects.get_or_create(user=self.user, test=next_test, status="active")
+                user_test = UserTest.objects.filter(user=self.user, test=next_test).first()
+                if not user_test:
+                    UserTest.objects.create(user=self.user, test=next_test, status="active")
+                else:
+                    user_test.status = "active"
+                    user_test.save()
                     
         super().save(*args, **kwargs)
             
