@@ -105,7 +105,7 @@ class UserTest(BaseModel):
         lesson = test.lesson
         if self.status == "finished" and test == lesson.tests.last():        
             next_lesson = Lesson.objects.filter(order=lesson.order + 1).first()
-            if next_lesson:
+            if next_lesson.status != "active":
                 if self.user.has_active_subscription():
                     lesson_status = "open"
                     test_status = "active"
