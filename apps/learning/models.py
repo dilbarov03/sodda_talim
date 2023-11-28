@@ -104,45 +104,42 @@ class UserTest(BaseModel):
         test = self.test
         lesson = test.lesson
         
-        if hasattr(kwargs.get('request'), 'user'):
-            user = kwargs['request'].user
+        if not hasattr(kwargs.get('request'), 'user'):
+            if self.status == "finished" and test == lesson.tests.last():        
+                next_lesson = Lesson.objects.filter(order=lesson.order + 1).first()
+                if next_lesson and next_lesson.order > 3:
+                    if self.user.has_active_subscription():
+                        lesson_status = "open"
+                        test_status = "active"
+                    else:
+                        lesson_status = "closed"
+                        test_status = "closed"    
+                    
+                    user_lesson, created = UserLesson.objects.get_or_create(user=self.user, lesson=next_lesson)
 
-            if (user.is_superuser or user.is_staff) is False:
-                if self.status == "finished" and test == lesson.tests.last():        
-                    next_lesson = Lesson.objects.filter(order=lesson.order + 1).first()
-                    if next_lesson and next_lesson.order > 3:
-                        if self.user.has_active_subscription():
-                            lesson_status = "open"
-                            test_status = "active"
-                        else:
-                            lesson_status = "closed"
-                            test_status = "closed"    
+                    # If the object is created, set its status
+                    if created:
+                        user_lesson.status = lesson_status
+                        user_lesson.save()
+                    else:
+                        # If the object already exists, update its status
+                        user_lesson.status = lesson_status
+                        user_lesson.save()
+                    
+                    test = next_lesson.tests.first()
+                    if test and not UserTest.objects.filter(user=self.user, test=test).exists():
+                        UserTest.objects.create(user=self.user, test=test, status=test_status) 
                         
-                        user_lesson, created = UserLesson.objects.get_or_create(user=self.user, lesson=next_lesson)
-
-                        # If the object is created, set its status
-                        if created:
-                            user_lesson.status = lesson_status
-                            user_lesson.save()
-                        else:
-                            # If the object already exists, update its status
-                            user_lesson.status = lesson_status
-                            user_lesson.save()
-                        
-                        test = next_lesson.tests.first()
-                        if test and not UserTest.objects.filter(user=self.user, test=test).exists():
-                            UserTest.objects.create(user=self.user, test=test, status=test_status) 
-                            
-                elif self.status == "finished" and test != lesson.tests.last():
-                    # if it is, then add the next test to the UserTest model
-                    next_test = Test.objects.filter(lesson=lesson).filter(Q(order__gt=test.order) | Q(id__gt=test.id)).first()
-                    if next_test:
-                        user_test = UserTest.objects.filter(user=self.user, test=next_test).first()
-                        if not user_test:
-                            UserTest.objects.create(user=self.user, test=next_test, status="active")
-                        else:
-                            user_test.status = "active"
-                            user_test.save()
+            elif self.status == "finished" and test != lesson.tests.last():
+                # if it is, then add the next test to the UserTest model
+                next_test = Test.objects.filter(lesson=lesson).filter(Q(order__gt=test.order) | Q(id__gt=test.id)).first()
+                if next_test:
+                    user_test = UserTest.objects.filter(user=self.user, test=next_test).first()
+                    if not user_test:
+                        UserTest.objects.create(user=self.user, test=next_test, status="active")
+                    else:
+                        user_test.status = "active"
+                        user_test.save()
     
 
                     
