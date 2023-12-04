@@ -50,6 +50,7 @@ class Question(BaseModel):
     question = models.TextField(verbose_name="Question")
     correct_option = models.CharField(max_length=255, verbose_name="Correct Option")
     wrong_option = models.CharField(max_length=255, verbose_name="Wrong Option", null=True, blank=True)
+    audio = models.FileField(upload_to="audio", verbose_name="Audio", null=True, blank=True)
     order = models.IntegerField(verbose_name="Order", default=1)
     
     class Meta:

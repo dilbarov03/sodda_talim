@@ -33,7 +33,7 @@ class QuestionListSerializer(serializers.ModelSerializer):
     user_answer = serializers.SerializerMethodField()
     class Meta:
         model = Question
-        fields = ("id", "question", "correct_option", "wrong_option", "user_answer")
+        fields = ("id", "question", "correct_option", "wrong_option", "audio","user_answer")
         
     def get_user_answer(self, obj):
         user = self.context["request"].user
