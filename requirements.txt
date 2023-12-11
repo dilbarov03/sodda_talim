@@ -13,3 +13,5 @@ django-phonenumber-field
 phonenumbers
 gunicorn
 whitenoise
+celery==5.3.6
+Redis==5.0.1

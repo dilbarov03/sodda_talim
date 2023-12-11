@@ -1,7 +1,13 @@
 from rest_framework import serializers
 
-from .models import Lesson, Test, Question, UserAnswer, UserTest, EntranceQuestion, UserLesson
+from .models import Lesson, Test, Question, UserAnswer, UserTest, EntranceQuestion, UserLesson, Language
 from .utils import process_string
+
+
+class LanguageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Language
+        fields = ("id", "name")
 
 
 class TestListSerializer(serializers.ModelSerializer):

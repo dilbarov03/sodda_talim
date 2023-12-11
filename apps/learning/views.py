@@ -4,16 +4,25 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import Lesson, Test, UserTest, UserAnswer, EntranceQuestion, UserLesson
+from django_filters.rest_framework import DjangoFilterBackend
 
-from .serializers import LessonListSerializer, TestDetailSerializer, UserAnswerInputSerializer, EntranceQuestionSerializer
+from .models import Lesson, Test, UserTest, UserAnswer, EntranceQuestion, UserLesson,  Language
+
+from .serializers import LessonListSerializer, TestDetailSerializer, UserAnswerInputSerializer, EntranceQuestionSerializer, LanguageSerializer
+
+
+class LanguageListView(ListAPIView):
+    serializer_class = LanguageSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = Language.objects.all()
 
 
 class LessonListView(ListAPIView):
     serializer_class = LessonListSerializer
     permission_classes = (IsAuthenticated,)
     queryset = Lesson.objects.all()
+    filter_backends = (DjangoFilterBackend, )
+    filterset_fields = ('language', )
 
     # def get_queryset(self):
     #     user = self.request.user
@@ -89,7 +98,8 @@ class AddLessonsView(GenericAPIView):
     state_param = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'lesson_count': openapi.Schema(type=openapi.TYPE_INTEGER, description='Lesson count')
+            'lesson_count': openapi.Schema(type=openapi.TYPE_INTEGER, description='Lesson count'),
+            'language': openapi.Schema(type=openapi.TYPE_INTEGER, description='Language count'),
         }
     )
     
@@ -97,9 +107,12 @@ class AddLessonsView(GenericAPIView):
     def post(self, request):
         user = request.user
         lesson_count = request.data.get("lesson_count")
+        language = request.data.get("language")
         if not lesson_count:
             return Response({"error": "Lesson count is required"}, status=400)
-        lessons = Lesson.objects.filter(order__lte=lesson_count, order__gt=3)
+        if not language:
+            return Response({"error": "Language count is required"}, status=400)
+        lessons = Lesson.objects.filter(order__lte=lesson_count, order__gt=3, language__id=language)
         
         lessons_list = list(lessons)
         
