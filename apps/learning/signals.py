@@ -1,16 +1,25 @@
-# from django.db.models.signals import post_save
-# from django.dispatch import receiver
-# from .models import User
-# from apps.learning.models import Lesson, UserLesson, UserTest, Test
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth import get_user_model
 
-# @receiver(post_save, sender=UserLesson)
-# def add_initial_lesson(sender, instance, created, **kwargs):
-#     if created:
-#         # make first test of this lesson active to the user
-#         test = instance.lesson.tests.first()
-#         UserTest.objects.create(user=instance.user, test=test, status="active")
+from apps.learning.models import Lesson, Test
+from .tasks import create_user_lesson, create_user_test
 
-    
+
+
+User = get_user_model()
+
+@receiver(post_save, sender=Lesson)
+def add_initial_lesson(sender, instance, created, **kwargs):
+    if created and instance.order <= 3:
+        create_user_lesson.delay(instance.id)
+        
+
+@receiver(post_save, sender=Test)
+def add_tests(sender, instance, created, **kwargs):
+    if created and instance.lesson.order <= 3:
+        create_user_test.delay(instance.id)
+
 
 # @receiver(post_save, sender=UserTest)
 # def next_lesson(sender, instance, created, **kwargs):

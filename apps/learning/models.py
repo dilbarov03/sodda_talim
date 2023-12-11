@@ -3,20 +3,32 @@ from django.db.models import Q
 
 from apps.common.models import BaseModel
 
+class Language(BaseModel):
+    name = models.CharField(max_length=255)
+    
+    class Meta:
+        verbose_name = "Language"
+        verbose_name_plural = "Languages"
+        
+    def __str__(self) -> str:
+        return self.name
+
 
 class Lesson(BaseModel):
     title = models.CharField(max_length=255, verbose_name="Title")
     body = models.TextField(verbose_name="Body")
-    order = models.IntegerField(verbose_name="Order", unique=True)
+    language = models.ForeignKey(Language, on_delete=models.CASCADE, verbose_name="Language", null=True)
+    order = models.IntegerField(verbose_name="Order")
     
     class Meta:
         verbose_name = "Lesson"
         verbose_name_plural = "Lessons"
         ordering = ["order"]
+        unique_together = ["language", "order"]
         
     def __str__(self):
-        return self.title
-
+        return f"{self.title} | {self.language}"
+    
 
 class Test(BaseModel):
     class TestType(models.TextChoices):
@@ -42,7 +54,6 @@ class Test(BaseModel):
             return user_test.status
         except UserTest.DoesNotExist:
             return UserTest.TestStatus.LOCKED
-
 
 class Question(BaseModel):
     test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Test",
@@ -107,7 +118,7 @@ class UserTest(BaseModel):
         
         if not hasattr(kwargs.get('request'), 'user'):
             if self.status == "finished" and test == lesson.tests.last():        
-                next_lesson = Lesson.objects.filter(order=lesson.order + 1).first()
+                next_lesson = Lesson.objects.filter(language=self.language, order=lesson.order + 1).first()
                 if next_lesson and next_lesson.order > 3:
                     if self.user.has_active_subscription():
                         lesson_status = "open"

@@ -7,8 +7,11 @@ from apps.learning.models import Lesson, UserLesson, UserTest, Test
 def add_initial_lessons(sender, instance, created, **kwargs):
     if created:
         # Add the first three lessons to the UserLesson model
-        lessons_to_add = Lesson.objects.all()[:3]
+        lessons_to_add = Lesson.objects.filter(order__lte=3)
         for lesson in lessons_to_add:
+            if UserLesson.objects.filter(user=instance, lesson=lesson).exists():
+                continue
+            
             UserLesson.objects.create(user=instance, lesson=lesson, status="open")
             
             # make all tests in these three lessons available to the user
@@ -16,6 +19,7 @@ def add_initial_lessons(sender, instance, created, **kwargs):
             for test in tests:
                 UserTest.objects.create(user=instance, test=test, status="active")
     else:
+        # If the user has an active subscription, make all lessons available to the user
         if instance.has_active_subscription():
             closed_lessons = UserLesson.objects.filter(user=instance, status="closed")
             closed_lessons_list = list(closed_lessons)
