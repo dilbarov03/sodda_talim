@@ -173,6 +173,7 @@ class UserAnswer(BaseModel):
 
 
 class EntranceQuestion(BaseModel):
+    language = models.ForeignKey(Language, on_delete=models.CASCADE, verbose_name="Language", null=True)
     question = models.TextField(verbose_name="Question")
     correct_option = models.CharField(max_length=255, verbose_name="Correct Option")
     wrong_option1 = models.CharField(max_length=255, verbose_name="Wrong Option 1", null=True, blank=True)
@@ -183,6 +184,7 @@ class EntranceQuestion(BaseModel):
         verbose_name = "Entrance Question"
         verbose_name_plural = "Entrance Questions"
         ordering = ["order"]
+        unique_together = ["language", "order"]
 
     def __str__(self):
         return self.question[:50] + "..."

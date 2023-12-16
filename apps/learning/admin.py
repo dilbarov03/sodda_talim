@@ -54,8 +54,9 @@ class UserTestAdmin(admin.ModelAdmin):
 
 @admin.register(EntranceQuestion)
 class EntranceQuestionAdmin(admin.ModelAdmin):
-    list_display = ["question", "correct_option", "wrong_option1", "wrong_option2", "order"]
+    list_display = ["question", "correct_option", "wrong_option1", "wrong_option2", "order", "language"]
     search_fields = ["question", "correct_option"]
+    list_filter = ["language"]
 
     def has_add_permission(self, request):
         if self.model.objects.count() >= 90:
