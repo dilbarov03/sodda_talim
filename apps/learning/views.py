@@ -23,24 +23,6 @@ class LessonListView(ListAPIView):
     queryset = Lesson.objects.all()
     filter_backends = (DjangoFilterBackend, )
     filterset_fields = ('language', )
-
-    # def get_queryset(self):
-    #     user = self.request.user
-
-    #     # get all users without duplicates
-    #     queryset = Lesson.objects.all()
-        
-
-    #     # Annotate the queryset with the is_active field
-    #     queryset = queryset.annotate(
-    #         is_active=Case(
-    #             When(user_lessons__user=user, user_lessons__lesson_id=F('id'), user_lessons__status="open", then=Value(True)),
-    #             default=Value(False),
-    #             output_field=BooleanField()
-    #         )
-    #     )
-
-    #     return queryset
         
 
 class TestDetailView(RetrieveAPIView):
@@ -90,6 +72,8 @@ class EntranceQuestionListView(ListAPIView):
     queryset = EntranceQuestion.objects.all()
     serializer_class = EntranceQuestionSerializer
     pagination_class = None
+    filter_backends = (DjangoFilterBackend, )
+    filterset_fields = ('language', )
 
 
 class AddLessonsView(GenericAPIView):
