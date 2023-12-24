@@ -119,7 +119,7 @@ class UserTest(BaseModel):
         
         if not hasattr(kwargs.get('request'), 'user'):
             if self.status == "finished" and test == lesson.tests.last():        
-                next_lesson = Lesson.objects.filter(language=self.language, order=lesson.order + 1).first()
+                next_lesson = Lesson.objects.filter(language=lesson.language, order=lesson.order + 1).first()
                 if next_lesson and next_lesson.order > 3:
                     if self.user.has_active_subscription():
                         lesson_status = "open"
