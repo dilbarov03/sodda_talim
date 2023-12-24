@@ -13,14 +13,17 @@ User = get_user_model()
 def add_initial_lesson(sender, instance, created, **kwargs):
     if created and instance.order <= 3:
         create_user_lesson.delay(instance.id)
-    create_userlesson(instance.id)        
+    if created:
+        create_userlesson(instance.id)        
         
 
 @receiver(post_save, sender=Test)
 def add_tests(sender, instance, created, **kwargs):
     if created and instance.lesson.order <= 3:
         create_user_test.delay(instance.id)
-    create_usertest(instance.id)
+    if created:
+        create_usertest(instance.id)
+    
 
 
 # @receiver(post_save, sender=UserTest)
