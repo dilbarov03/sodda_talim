@@ -16,6 +16,7 @@ class Language(BaseModel):
 
 class Lesson(BaseModel):
     title = models.CharField(max_length=255, verbose_name="Title")
+    subtitle = models.CharField(max_length=255, verbose_name="Subtitle", null=True, blank=True)
     body = models.TextField(verbose_name="Body")
     language = models.ForeignKey(Language, on_delete=models.CASCADE, verbose_name="Language", null=True)
     order = models.IntegerField(verbose_name="Order")

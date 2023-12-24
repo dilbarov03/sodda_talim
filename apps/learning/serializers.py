@@ -26,7 +26,7 @@ class LessonListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Lesson
-        fields = ("id", "title", "body", "is_active", "tests")
+        fields = ("id", "title", "subtitle","body", "is_active", "tests")
         
     def get_is_active(self, obj):
         user_lesson = UserLesson.objects.filter(user=self.context["request"].user, lesson=obj).first()
