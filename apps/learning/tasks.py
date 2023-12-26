@@ -5,7 +5,7 @@ from .models import UserLesson, UserTest, Lesson, Test
 User = get_user_model()
 
 @shared_task
-def create_user_lesson(lesson):
+def create_free_lesson(lesson):
     # for all free lessons
     users = User.objects.all()
     for user in users:
@@ -15,7 +15,7 @@ def create_user_lesson(lesson):
 
 
 @shared_task
-def create_user_test(test):
+def create_free_test(test):
     # for all free lessons
     users = User.objects.all()
     for user in users:
@@ -25,17 +25,21 @@ def create_user_test(test):
 
 
 @shared_task
-def create_userlesson(lesson_id):
+def create_new_lesson(lesson_id):
     lesson = Lesson.objects.filter(id=lesson_id).first()
     
     # get previous lesson
-    previous_lesson = Lesson.objects.filter(language=lesson.language, order__lt=lesson.order).first()
+    previous_lesson = Lesson.objects.filter(language=lesson.language, order__lt=lesson.order).last()
+    
+    
     user_lessons = UserLesson.objects.filter(lesson=previous_lesson, status="open")
     users = []
     for user_lesson in user_lessons:
-        user_test = UserTest.objects.filter(user=user_lesson.user, test__lesson=user_lesson.lesson, status="active").last()
-        if previous_lesson.tests.last() == user_test.test and user_test.status == "finished" :
+        user_test = UserTest.objects.filter(user=user_lesson.user, test__lesson=user_lesson.lesson, 
+                                            status="finished").last()
+        if previous_lesson.tests.last() == user_test.test:
             users.append(user_lesson.user)
+    print(users)
             
     for user in users:
         if not UserLesson.objects.filter(user=user, lesson=lesson).exists():
@@ -43,11 +47,12 @@ def create_userlesson(lesson_id):
                 UserLesson.objects.create(user=user, lesson=lesson, status="open")
             else:
                 UserLesson.objects.create(user=user, lesson=lesson, status="closed")
-    return "UserLesson objects created successfully"
+    
+    return "New UserLesson objects created successfully"
 
 
 @shared_task
-def create_usertest(test):
+def create_new_test(test):
     test = Test.objects.filter(id=test).first()
     
     # get user lesson for this test

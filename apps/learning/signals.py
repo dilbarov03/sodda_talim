@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 
 from apps.learning.models import Lesson, Test, UserLesson, UserTest
-from .tasks import create_user_lesson, create_user_test, create_userlesson, create_usertest
+from .tasks import create_free_lesson, create_free_test, create_new_lesson, create_new_test
 
 
 
@@ -11,18 +11,20 @@ User = get_user_model()
 
 @receiver(post_save, sender=Lesson)
 def add_initial_lesson(sender, instance, created, **kwargs):
-    if created and instance.order <= 3:
-        create_user_lesson.delay(instance.id)
     if created:
-        create_userlesson(instance.id)        
+        if instance.order <= 3:
+            create_free_lesson.delay(instance.id)
+        else:
+            create_new_lesson.delay(instance.id)        
         
 
 @receiver(post_save, sender=Test)
 def add_tests(sender, instance, created, **kwargs):
-    if created and instance.lesson.order <= 3:
-        create_user_test.delay(instance.id)
     if created:
-        create_usertest(instance.id)
+        if instance.lesson.order <= 3:
+            create_free_test.delay(instance.id)
+        else:
+            create_new_test.delay(instance.id)
     
 
 
